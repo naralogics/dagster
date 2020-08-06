@@ -56,7 +56,7 @@ from dagster.grpc.server import GrpcServerProcess
 from dagster.grpc.types import LoadableTargetOrigin
 from dagster.serdes import ConfigurableClass
 from dagster.serdes.ipc import DagsterIPCProtocolError
-from dagster.utils import file_relative_path
+from dagster.utils import file_relative_path, merge_dicts
 from dagster.utils.test import FilesystemTestScheduler
 
 
@@ -1524,7 +1524,12 @@ def test_launch_pipeline(execute_cli_args):
 def mocked_instance(overrides=None):
     with seven.TemporaryDirectory() as temp_dir:
         with environ({'DAGSTER_HOME': temp_dir}):
-            yield DagsterInstance.local_temp(temp_dir, overrides=overrides)
+            yield DagsterInstance.local_temp(
+                temp_dir,
+                overrides=merge_dicts(
+                    overrides if overrides else {}, {'telemetry': {'enabled': False}}
+                ),
+            )
 
 
 def test_tags_pipeline():
@@ -1715,6 +1720,7 @@ def test_launch_subset_pipeline():
         run = runs[0]
         assert run.solid_selection == ['do_something']
         assert run.solids_to_execute == {'do_something'}
+        instance.run_launcher.join()
 
     # single clause, DSL query
     with mocked_instance() as instance:
@@ -1735,6 +1741,7 @@ def test_launch_subset_pipeline():
         run = runs[0]
         assert run.solid_selection == ['*do_something+']
         assert run.solids_to_execute == {'do_something', 'do_input'}
+        instance.run_launcher.join()
 
     # multiple clauses, DSL query and solid name
     with mocked_instance() as instance:
@@ -1771,3 +1778,4 @@ def test_launch_subset_pipeline():
         )
         assert result.exit_code == 1
         assert 'No qualified solids to execute found for solid_selection' in str(result.exception)
+        instance.run_launcher.join()

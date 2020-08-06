@@ -129,3 +129,5 @@ def test_cancel_run():
 
             # soft termination
             assert [ev for ev in logs if ev.dagster_event.event_type_value == 'STEP_FAILURE']
+
+            instance.run_launcher.join()

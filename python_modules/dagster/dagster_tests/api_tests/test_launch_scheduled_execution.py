@@ -115,15 +115,19 @@ def grpc_schedule_origin(schedule_name):
 @pytest.mark.parametrize('schedule_origin_context', [cli_api_schedule_origin, grpc_schedule_origin])
 def test_launch_scheduled_execution(schedule_origin_context):
     with schedule_origin_context('simple_schedule') as schedule_origin:
-        instance = DagsterInstance.get()
-        result = sync_launch_scheduled_execution(schedule_origin)
-        assert isinstance(result, ScheduledExecutionSuccess)
+        with seven.TemporaryDirectory() as temp_dir:
+            with environ({'DAGSTER_HOME': temp_dir}):
+                instance = DagsterInstance.get()
+                result = sync_launch_scheduled_execution(schedule_origin)
+                assert isinstance(result, ScheduledExecutionSuccess)
 
-        run = instance.get_run_by_id(result.run_id)
-        assert run is not None
+                run = instance.get_run_by_id(result.run_id)
+                assert run is not None
 
-        ticks = instance.get_schedule_ticks(schedule_origin.get_id())
-        assert ticks[0].status == ScheduleTickStatus.SUCCESS
+                ticks = instance.get_schedule_ticks(schedule_origin.get_id())
+                assert ticks[0].status == ScheduleTickStatus.SUCCESS
+
+                instance.run_launcher.join()
 
 
 @pytest.mark.parametrize('schedule_origin_context', [cli_api_schedule_origin, grpc_schedule_origin])
