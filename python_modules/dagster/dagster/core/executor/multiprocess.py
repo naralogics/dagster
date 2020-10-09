@@ -40,6 +40,8 @@ class InProcessExecutorChildProcessCommand(ChildProcessCommand):
         self.recon_pipeline = recon_pipeline
         self.retries = retries
 
+        sys.stderr.write("STARTED CHILD PROCESS IN   " + str(os.getpid()) + " ! \n")
+
     def execute(self):
         pipeline = self.recon_pipeline
         with DagsterInstance.from_ref(self.instance_ref) as instance:
@@ -94,6 +96,8 @@ class MultiprocessExecutor(Executor):
 
         limit = self.max_concurrent
 
+        import os
+
         yield DagsterEvent.engine_event(
             pipeline_context,
             "Executing steps using multiprocess executor: parent process (pid: {pid})".format(
@@ -116,6 +120,11 @@ class MultiprocessExecutor(Executor):
 
                 while (not stopping and not active_execution.is_complete) or active_iters:
                     if active_execution.check_for_interrupts():
+                        sys.stderr.write(
+                            "GOT AN INTERRUPT IN "
+                            + str(os.getpid())
+                            + " ! SETTING TERMINATION EVENT\n"
+                        )
                         yield DagsterEvent.engine_event(
                             pipeline_context,
                             "Multiprocess executor: received termination signal - "

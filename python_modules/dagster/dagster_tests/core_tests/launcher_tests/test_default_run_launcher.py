@@ -161,13 +161,8 @@ def get_external_pipeline_from_python_location(pipeline_name):
 
 def run_configs():
     return [
-        None,
-        pytest.param(
-            {"execution": {"multiprocess": {}}, "storage": {"filesystem": {}}},
-            marks=pytest.mark.skipif(
-                seven.IS_WINDOWS, reason="multiprocessing tests flaky on windows"
-            ),
-        ),
+        #        None,
+        {"execution": {"multiprocess": {}}, "storage": {"filesystem": {}}},
     ]
 
 
@@ -176,6 +171,14 @@ def _is_multiprocess(run_config):
 
 
 def _check_event_log(event_log, expected_type_and_message):
+
+    for event in event_log:
+        print(  # pylint: disable=print-call
+            "Received event: {event_type} , {message}".format(
+                event_type=event.dagster_event.event_type_value, message=event.message,
+            )
+        )
+
     assert len(event_log) == len(expected_type_and_message)
     log_iter = iter(event_log)
 
@@ -272,8 +275,8 @@ def test_crashy_run(get_external_pipeline, run_config):  # pylint: disable=redef
 @pytest.mark.parametrize(
     "get_external_pipeline",
     [
-        get_external_pipeline_from_grpc_server_repository,
-        get_external_pipeline_from_managed_grpc_python_env_repository,
+        #        get_external_pipeline_from_grpc_server_repository,
+        #        get_external_pipeline_from_managed_grpc_python_env_repository,
         get_external_pipeline_from_python_location,
     ],
 )
