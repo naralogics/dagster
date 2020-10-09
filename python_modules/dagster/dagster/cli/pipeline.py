@@ -298,8 +298,11 @@ def execute_execute_command(instance, kwargs):
     tags = get_tags_from_args(kwargs)
 
     pipeline_origin = get_pipeline_python_origin_from_kwargs(kwargs)
+
     pipeline = recon_pipeline_from_origin(pipeline_origin)
+
     solid_selection = get_solid_selection_from_args(kwargs)
+
     result = do_execute_command(pipeline, instance, config, mode, tags, solid_selection, preset)
 
     if not result.success:

@@ -315,6 +315,14 @@ def touch_file(path):
 
 def _kill_on_event(termination_event):
     termination_event.wait()
+
+    import os
+    import sys
+
+    sys.stderr.write(
+        "TERMINATION FIRED IN  " + str(os.getpid()) + " ! SETTING INTERRUPT TO MYSELF\n"
+    )
+
     send_interrupt()
 
 
